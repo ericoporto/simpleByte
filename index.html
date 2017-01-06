@@ -1,0 +1,138 @@
+<DOCTYPE! html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+<script>
+function setpixelated(canvas){
+  var ctx = canvas.getContext('2d');
+  ctx['imageSmoothingEnabled'] = false;       /* standard */
+  ctx['mozImageSmoothingEnabled'] = false;    /* Firefox */
+  ctx['oImageSmoothingEnabled'] = false;      /* Opera */
+  ctx['webkitImageSmoothingEnabled'] = false; /* Safari */
+  ctx['msImageSmoothingEnabled'] = false;     /* IE */
+  canvas.style.imageRendering = 'optimizeSpeed';
+  canvas.style.imageRendering = '-moz-crisp-edges';
+  canvas.style.imageRendering = '-o-crisp-edges';
+  canvas.style.imageRendering = '-webkit-optimize-contrast';
+  canvas.style.imageRendering = 'optimize-contrast';
+  canvas.style.imageRendering = 'crisp-edges';
+  canvas.style.imageRendering = 'pixelated';
+}
+
+sb={}
+sb.resize = function(){
+    if(window.innerHeight>window.innerWidth){
+    //portrait
+      //game at top
+      sb.c.style.position = 'absolute';
+      sb.c.style.bottom = 'auto';
+      sb.c.style.top = 0;
+      sb.c.style.left = 0;
+      sb.c.style.right = 'auto';
+      sb.c.style.height = Math.floor(window.innerHeight/2) + 'px';
+      sb.c.style.width = Math.floor(window.innerWidth) + 'px';
+      
+      
+      //text editor at bottom
+      sb.t.style.position = 'absolute';
+      sb.t.style.bottom = 0;
+      sb.t.style.top = 'auto';
+      sb.t.style.left = 'auto';
+      sb.t.style.right = 0;
+      sb.t.style.height = Math.floor(window.innerHeight/2) + 'px';
+      sb.t.style.width = Math.floor(window.innerWidth) + 'px';
+
+    } else {
+    //landscape  
+      //text editor at left
+      sb.t.style.position = 'absolute';
+      sb.t.style.bottom = 'auto';
+      sb.t.style.top = 0;
+      sb.t.style.left = 0;
+      sb.t.style.right = 'auto';
+      sb.t.style.height = Math.floor(window.innerHeight) + 'px';
+      sb.t.style.width = Math.floor(window.innerWidth/2) + 'px';
+      
+      //game at right
+      sb.c.style.position = 'absolute';
+      sb.c.style.bottom = 0;
+      sb.c.style.top = 'auto';
+      sb.c.style.left = 'auto';
+      sb.c.style.right = 0;
+      sb.c.style.height = Math.floor(window.innerHeight) + 'px';
+      sb.c.style.width = Math.floor(window.innerWidth/2) + 'px';
+    }
+}
+
+sb.draw = function(){
+    var fillStyle = function(c){sb.ctx.fillStyle=c};
+    var strokeStyle = function(c){sb.ctx.strokeStyle=c};
+    var rect = sb.ctx.rect.bind(sb.ctx);
+    var fillRect = sb.ctx.fillRect.bind(sb.ctx);
+    var strokeRect = sb.ctx.strokeRect.bind(sb.ctx);
+    var clearRect = sb.ctx.clearRect.bind(sb.ctx);
+    try {
+        eval(sb.drawcode);
+    } catch(e) {
+       console.log(e);
+    }
+    window.requestAnimationFrame.call(window, sb.draw)
+}
+
+sb.update = function(){
+    try {
+        eval(sb.updatecode);
+    } catch(e) {
+       console.log(e);
+    }
+    setTimeout(sb.update ,1000/60);
+}
+
+sb.codeReload = function() {
+    // event handling code for sane browsers
+    sb.previousinit = sb.initcode;
+    sb.initcode = sb.t.value.match(/init\(\)\{([^}]+)\}/)[1];
+    
+    if(sb.initcode != sb.previousinit){
+        try {
+            eval(sb.initcode);
+        } catch(e) {
+           console.log(e);
+        }
+    }
+    
+    sb.updatecode = sb.t.value.match(/update\(\)\{([^}]+)\}/)[1];
+    sb.drawcode = sb.t.value.match(/draw\(\)\{([^}]+)\}/)[1];
+    
+}
+
+function on_load(){
+    sb.c = document.createElement('canvas');
+    sb.c.width = 160
+    sb.c.height = 160;
+    setpixelated(sb.c);
+    sb.ctx = sb.c.getContext('2d');
+    sb.t = document.createElement('textarea');
+    sb.t.value = 'init(){\n//initialization code here...\n\n\n}\n\nupdate(){\n//logic and controls code here...\n\n\n}\n\ndraw(){\n//drawing code here...\nfillStyle(\'#000000\');\nclearRect(0,0,160,160);\nfillRect(16,16,32,32);\n\n}\n';
+    
+    document.documentElement.appendChild(sb.t);
+    document.documentElement.appendChild(sb.c);
+    
+    sb.codeReload()
+    sb.draw()
+    sb.update()
+    
+    sb.t.addEventListener('input', sb.codeReload, false);
+    
+    sb.resize()
+    window.addEventListener('resize', sb.resize, false);
+    window.addEventListener('orientationchange', function(){sb.resize(); setTimeout( sb.resize,1000);}, false);
+}
+</script>
+</head>
+<body onload="on_load()">
+<div class="place">
+</div>
+
+</body>
+</html>
